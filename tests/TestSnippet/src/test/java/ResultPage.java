@@ -3,6 +3,13 @@ import org.openqa.selenium.WebDriver;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.util.Random;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 public class ResultPage extends PageBase {
     protected By rawTextBy = By.xpath("/html/body/pre");
@@ -39,18 +46,36 @@ public class ResultPage extends PageBase {
     public void download() {
         // driver.findElement(downloadBy).click();
         System.out.println("DOWNLOAD");
+        int rand = new Random().nextInt(99999);
+        String text = String.valueOf(rand);
         String downurl = driver.getCurrentUrl() + "/download";
         String path = "/home/selenium/tests/TestSnippet/downloads/";
-        String filename = path + downurl + ".txt";
-        try (BufferedInputStream in = new BufferedInputStream(new URL(downurl).openStream());
-            FileOutputStream fileOutputStream = new FileOutputStream(filename)) {
-                byte dataBuffer[] = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-                    fileOutputStream.write(dataBuffer, 0, bytesRead);
-                }
-            } catch (IOException e) {
-                // handle exception
-            }
+        String filename = text + ".txt";
+        // try (BufferedInputStream in = new BufferedInputStream(new URL(downurl).openStream());
+        //     FileOutputStream fileOutputStream = new FileOutputStream(filename)) {
+        //         byte dataBuffer[] = new byte[1024];
+        //         int bytesRead;
+        //         while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+        //             fileOutputStream.write(dataBuffer, 0, bytesRead);
+        //         }
+        //     } catch (IOException e) {
+        //         // handle exception
+        //     }
+        System.out.println(downurl);
+        System.out.println(filename);
+        try {
+            downloadUsingNIO(downurl, path + filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void downloadUsingNIO(String urlStr, String file) throws IOException {
+        URL url = new URL(urlStr);
+        ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+        FileOutputStream fos = new FileOutputStream(file);
+        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+        fos.close();
+        rbc.close();
     }
 }
