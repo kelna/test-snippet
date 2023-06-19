@@ -1,0 +1,7 @@
+.gradle
+build
+.vscode
+bin
+lib
+props.properties
+downloads
